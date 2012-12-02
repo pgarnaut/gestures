@@ -6,34 +6,33 @@ function display(msg){
 var pixelBuffering = 10;
 
 var app = {
-  buf: Lifo(40000),
-  dirBuf: Lifo(20),
+  buf: LIFO(40000),
+  dirBuf: LIFO(20),
   
   p0: [0,0],
   p1: [0,0],
   
   init: function(){
     console.log("running");
-    console.log("LifoTests tests: " + (LifoTests().run()? 'passed' : 'failed'));
     //return;
     document.onmousemove = app.capture;
     
-    setInterval(app.swallow, 100);
+    setInterval(app.swallow, 150);
   },
   
   capture: function(e){
     var evt = e || window.event;
     var x1 = event.clientX;
     var y1 = event.clientY;
+    //LOG("buffering: " + x1 + ', ' + y1);
     app.buf.push([x1, y1]);
-    //console.log('pos: '+ evt.clientX + ', '+evt.clientY);
-    //LOG('buf: '+app.buf.get() + ' should be ' + [x1, y1]);
     lastPos = [x1, y1];
   },
   
   swallow: function(){
     app.p0 = app.p1;
     app.p1 = app.buf.get();
+    //console.log("swallow: " + app.p0 + ', ' + app.p1);
     if(app.p0 && app.p1)
       app.getDirection(app.p0, app.p1);
   },
@@ -59,6 +58,7 @@ var app = {
       LOG('direction: ' + dir);
      
     display(dir + '\n');
+    LOG('new dir');
     app.dirBuf.push(dir);
   },
   

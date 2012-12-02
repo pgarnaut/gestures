@@ -6,7 +6,7 @@
 
 
 /*
-  LIFO Buffer.
+  FIFO Buffer.
   
   0th element will always be the least-recently added.
   (len-1)'th element will always be the most-recently added.
@@ -15,67 +15,113 @@
     * this is a crappy hacky implementation - clean it up
   
 */
-function LOG(msg){console.log(msg);}
+var JSU_DEBUG = false;
 
-var Lifo = function(length){
+function LOG(msg){if(JSU_DEBUG) console.log(msg);}
 
-  var next = 0, buffer = [], count = 0, wasFilled = false; 
-
+/*
+  FIFO Buffer (Queue).
+  
+  0th element is oldest element. n'th is newest. 
+*/
+var FIFO = function(length){
+  var front = 0, back = 0, count = 0, buf = [];
+  
   return {
-    // get i'th oldest element, zero being the oldest (i.e. front of queue)
     get: function(idx){
       idx = idx || 0;
-
-      if(next > 0 && !wasFilled)
-        idx = next - 1;
+      LOG("getting: " + buf[(front + idx) % length] + " from " + idx);
+      if(count === 0) return undefined;
+      return buf[(front + idx) % length];
+    },
+    
+    push: function(val){
+      LOG("putting: " + val + " in " + back);
+      buf[back] = val;
+      
+      if(count === length) // buf full, we just overwrote an element
+        front = (front + 1) % length;
       else
-        idx = (next + idx) % length;
+        count++;
         
-      //LOG("getting " +buffer[idx]+" from: " + idx);
-      return buffer[idx]; // TODO: <-- doesn't work obviously
-    }, 
+      back = (back + 1) % length;
+    },
     
     dequeue: function(){
-      if(count === 0)
-        return undefined;
-        
-      var val = buffer[next];
+      if(count === 0) return undefined;
+      
+      var val = buf[front];
+      buf[front] = undefined;
+      
+      front = (front + 1) % length;
       count--;
-      //LOG("getting " +val+" from: " + next);
-      buffer[next] = undefined;
-      next = (next + 1) % length;
       return val;
     },
     
-    // enqueue
-    push: function(item){
-      //LOG('args: '+arguments[0][0]);
-      count = Math.min(count + 1, length);
-      if(count === length)
-        wasFilled = true;
-        
-      //LOG("putting " + item + " in: " + next);
-      buffer[next] = item;
-      next = (next + 1) % length;
+    pop: function(){
+      return this.dequeue();
     },
     
-    // num of elements actually stored in here
     size: function(){
       return count;
     },
-    
   };
 };
 
-var LifoTests = function(){
+
+/*
+  LIFO Buffer (Stack).
+  
+  0th element is most recently added. n'th is n'th oldest. 
+*/
+var LIFO = function(length){
+  var top = 0, count = 0, buf = [];
+  
+  return {
+    get: function(idx){
+      idx = idx || 0;
+      LOG("getting: " + [(top - idx + length) % length] + " from " + (top - idx + length) % length);
+      if(count <= idx) return undefined;
+      return buf[(top - idx + length) % length];
+    },
+    
+    push: function(val){
+      
+      top = (top + 1) % length;
+      buf[top] = val;
+      if(count !== length)
+        count++;
+        
+      LOG("putting: " + val + " in " + top);
+    },
+    
+    pop: function(){
+      if(count === 0) return undefined;
+      
+      var val = buf[top];
+      buf[top] = undefined;
+      
+      top = (top - 1 + length) % length;
+      count--;
+      
+      return val;
+    },
+    
+    size: function(){
+      return count;
+    },
+  };
+};
+
+var FifoTests = function(){
   return {
     run: function(){
       return this.simple() && this.popper() && this.arrTest();
     },
     simple: function(){
-      LOG("LIFO simple test");
+      LOG("FIFO simple test");
       var len = 5;
-      var buf = Lifo(len);
+      var buf = FIFO(len);
       var vals = [5,6,3,8,7,8];
       
       // fill it up to capacity
@@ -110,7 +156,7 @@ var LifoTests = function(){
     popper: function(){
       LOG("LIFO dequeue test");
       var len = 5;
-      var buf = Lifo(len);
+      var buf = FIFO(len);
       var vals = [5,6,3,8,7,8];
       
       // fill it up to capacity
@@ -136,7 +182,7 @@ var LifoTests = function(){
     arrTest: function(){
       // test lifo buffer with arrays as values
       var vals = [ ['a', 'b'], ['c', 'd', 'e'] ];
-      var buf = Lifo(2);
+      var buf = FIFO(2);
       var len = 2;
       
       for(var i=0; i<len; i++){
@@ -150,3 +196,93 @@ var LifoTests = function(){
     
   };
 };
+
+var LifoTests = function(){
+  return {
+    run: function(){
+      return this.simple() && this.popper() && this.arrTest();
+    },
+    simple: function(){
+      LOG("LIFO simple test");
+      var len = 5;
+      var buf = LIFO(len);
+      var vals = [5,6,3,8,7,8];
+      
+      // fill it up to capacity
+      for(var i=0; i<len; i++){
+        buf.push(vals[i]);
+        
+        if(buf.get() !== vals[i])
+          return false;
+      }
+      
+      // check all there, in correct order (0'th is newest, n'th is oldest)
+      for(var i=0; i<len; i++){
+        if(buf.get(i) !== vals[len - 1 - i])
+          return false;
+      }
+      
+      // fill it over capacity
+      var first = buf.get(0);
+      buf.push(vals[len]);
+      
+      // top of stack should obviously be the newest
+      if(buf.get() !== vals[len])
+        return false;
+      // oldest/bottom in stack should now be the second one added (oldest overwritten)
+      if(buf.get(len - 1) !== vals[1])
+        return false;
+        
+      // all passed
+      return true;
+    },
+    
+    popper: function(){
+      LOG("LIFO dequeue test");
+      var len = 5;
+      var buf = LIFO(len);
+      var vals = [5,6,3,8,7,8];
+      
+      // fill it up to capacity
+      for(var i=0; i<len; i++){
+        buf.push(vals[i]);
+      }
+      // chop elements off, should come off in reverse order (remember it's a stack! duh)
+      for(var i=0; i<len; i++){
+        if(buf.pop() !== vals[len - 1 - i])
+          return false;
+          
+        // TODO: test size is smaller
+        if(buf.size() !== len - i - 1)
+          return false;
+      }
+      
+      // buffer should now be empty
+      if(buf.get() || buf.pop() || buf.size() !== 0)
+        return false;
+        
+      return true;
+    },
+    
+    arrTest: function(){
+      // test lifo buffer with arrays as values
+      var vals = [ ['a', 'b'], ['c', 'd', 'e'] ];
+      var buf = LIFO(2);
+      var len = 2;
+      
+      for(var i=0; i<len; i++){
+        buf.push(vals[i]);
+        if(buf.get(0) != vals[i])
+          return false;
+      }
+      
+      return true;
+    },
+    
+  };
+};
+
+(function jsu_unittests(){
+  console.log("FIFO tests: " + (FifoTests().run()? 'passed' : 'failed'));
+  console.log("LIFO tests: " + (LifoTests().run()? 'passed' : 'failed'));
+})();
