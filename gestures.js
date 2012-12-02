@@ -1,6 +1,14 @@
+// this is just for testing/dev - will be removed later
 function display(msg){
-  $("#directions").append(msg);
-  $('#directions').scrollTop($('#directions').height())
+  if(msg.raw){
+    $("#raw-directions").append(msg.raw);
+    $('#raw-directions').scrollTop($('#raw-directions').height())
+  }
+  else if(msg.clean){
+    $("#clean-directions").append(msg.clean);
+    $('#clean-directions').scrollTop($('#clean-directions').height())
+  }
+    
 }
 
 var pixelBuffering = 10;
@@ -8,6 +16,8 @@ var pixelBuffering = 10;
 var app = {
   buf: LIFO(40000),
   dirBuf: LIFO(20),
+  clean: LIFO(20),
+  counts: LIFO(40),
   
   p0: [0,0],
   p1: [0,0],
@@ -54,12 +64,24 @@ var app = {
     else if(x1-x0 < -1*pixelBuffering)
       dir += 'W';
     
-    if(dir !== '')
-      LOG('direction: ' + dir);
-     
-    display(dir + '\n');
-    LOG('new dir');
     app.dirBuf.push(dir);
+    
+    // TODO: smarts to be added here (and in a separate periodic function maybe)
+    if(dir && app.clean.get() !== dir){
+      console.log(app.clean.get()  + ' unique from ' + dir);
+      app.clean.push(dir);
+      display({clean: dir+' '});
+    }
+    
+    if(app.counts.size() > 0 && dir === app.counts.get().direction)
+      app.counts.get().count++;
+    else if(dir)
+      app.counts.push({direction: dir, count: 1});
+    
+    if(dir)
+      display({clean: app.counts.get().direction +': '+app.counts.get().count+' '});
+    
+    display({raw: dir + ' '});
   },
   
 }
