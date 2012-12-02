@@ -9,18 +9,42 @@
 <script type="text/javascript" src="gestures.js"></script>
 
 <div id="directions" ></div>
-
+<input id="test" type="text" value="NE,SE,NE,SE"></input>
+<div id="result">no match</div>
 <script>$(app.init);</script>
 
 <style>
+
 #directions{
   width: 200px; 
   height: 200px; 
-  overflow-y: scroll;
-  border: 1px solid grey;
+  overflow-y: hidden;
+  border: 1px solid #818181;
   margin-left: auto; 
   margin-right: auto;
 }
+
+#test{
+  height: 20px;
+  width: 200px; 
+  display: block;
+  border: 1px solid #818181;
+  margin: auto;
+  text-align: center;
+  color: blue;
+}
+
+#result{
+  height: 20px;
+  width: 200px; 
+  display: block;
+  border: 1px solid #818181;
+  margin-left: auto; 
+  margin-right: auto;
+  text-align: center;
+  color: red;
+}
+
 </style>
 </body>
 </html>
