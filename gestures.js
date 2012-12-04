@@ -1,87 +1,97 @@
 // this is just for testing/dev - will be removed later
-function display(msg){
-  if(msg.raw){
-    $("#raw-directions").append(msg.raw);
-    $('#raw-directions').scrollTop($('#raw-directions').height())
-  }
-  else if(msg.clean){
-    $("#clean-directions").append(msg.clean);
-    $('#clean-directions').scrollTop($('#clean-directions').height())
-  }
-    
+function display(elt, msg){
+    elt.append(msg.clean);
+    elt.scrollTop(elt.height());
 }
 
-var pixelBuffering = 10;
+function GSLOG(msg){
+  if(false)
+    console.log(msg);
+}
+
+var pixelBuffering = 30;
+var dirBuffering = 3;
 
 var app = {
-  buf: LIFO(40000),
-  dirBuf: LIFO(20),
-  clean: LIFO(20),
-  counts: LIFO(40),
+  buf: LIFO(40000), // swallowed mouse position buffer
+  dbuf: LIFO(dirBuffering),
+  lastPos: [0,0], // last mouse position - updated for every mouse move event
   
-  p0: [0,0],
-  p1: [0,0],
+  match: {},
   
   init: function(){
-    console.log("running");
+    GSLOG("running");
     //return;
-    document.onmousemove = app.capture;
     
-    setInterval(app.swallow, 150);
+    app.addTrigger("W", function(){alert('triggered');});
+    
+    document.onmousemove = app.capture;
+    setInterval(app.swallow, 50);
+  },
+  
+  addTrigger: function(dir, f){
+    var padded = '';
+    for(var i = 0; i < dirBuffering; i++)
+      padded += dir; // haha ...
+      
+    GSLOG('adding trigger for ' + padded);
+    app.match[padded] = f;
   },
   
   capture: function(e){
+    if(!e.altKey)
+      return;
+      
     var evt = e || window.event;
     var x1 = event.clientX;
     var y1 = event.clientY;
     //LOG("buffering: " + x1 + ', ' + y1);
-    app.buf.push([x1, y1]);
-    lastPos = [x1, y1];
+    //app.buf.push([x1, y1]);
+    app.lastPos = [x1, y1];
   },
   
   swallow: function(){
-    app.p0 = app.p1;
-    app.p1 = app.buf.get();
-    //console.log("swallow: " + app.p0 + ', ' + app.p1);
-    if(app.p0 && app.p1)
-      app.getDirection(app.p0, app.p1);
+    app.buf.push(app.lastPos);
+    //GSLOG("swallow: " + app.p0 + ', ' + app.p1);
+    if(app.buf.size() >= 2 && app.buf.get(1) !== app.lastPos)
+      app.getDirection(app.buf.get(), app.buf.get(1));
   },
   
   getDirection: function(p0, p1){
-    //LOG('p0 ' + p0);
-    //LOG('p1 ' + p1);
     var x0=p0[0], y0=p0[1];
     var x1=p1[0], y1=p1[1];
     var dir = '';
     
     if(y1-y0 > pixelBuffering) 
-      dir = 'S';
-    else if(y1-y0 < -1*pixelBuffering)
       dir = 'N';
+    else if(y1-y0 < -1*pixelBuffering)
+      dir = 'S';
       
     if(x1-x0 > pixelBuffering) 
       dir += 'E';
     else if(x1-x0 < -1*pixelBuffering)
       dir += 'W';
+      
+    if(dir)
+      app.dbuf.push(dir);
     
-    app.dirBuf.push(dir);
+    var dirMag = app.dbuf.toArray(dirBuffering).join('');
+    GSLOG('dir + mag: ' +dirMag);
     
-    // TODO: smarts to be added here (and in a separate periodic function maybe)
-    if(dir && app.clean.get() !== dir){
-      console.log(app.clean.get()  + ' unique from ' + dir);
-      app.clean.push(dir);
-      display({clean: dir+' '});
+    // the gesture matching ...
+    for(var d in app.match){
+      if(dirMag === d){
+        app.match[d]();
+        app.clearBuffers();
+      }
     }
     
-    if(app.counts.size() > 0 && dir === app.counts.get().direction)
-      app.counts.get().count++;
-    else if(dir)
-      app.counts.push({direction: dir, count: 1});
-    
-    if(dir)
-      display({clean: app.counts.get().direction +': '+app.counts.get().count+' '});
-    
-    display({raw: dir + ' '});
+  },
+  
+  clearBuffers: function(){
+    app.buf.clear();
+    app.dbuf.clear();
+    app.lastPos = [0,0];
   },
   
 }
