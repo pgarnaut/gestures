@@ -12,7 +12,18 @@
 <div id="clean-directions"></div>
 <input id="test" type="text" value="NE,SE,NE,SE"></input>
 <div id="result">no match</div>
-<script>$(app.init);</script>
+<button id="test_start">start test</button>
+<script>
+  $(app.init);
+  
+  var cb = function(){
+    alert('triggered callback...');
+  }
+  // handle start button
+  $("#test_start").click(function(){
+    app.addTrigger($("#test").val(), cb);
+  });
+</script>
 
 <style>
 
@@ -50,6 +61,13 @@
   color: red;
 }
 
+button#test_start{
+  display: block;
+  margin: auto;
+  text-align: center;
+  background-color: #323232;
+  color: white;
+}
 </style>
 </body>
 </html>
