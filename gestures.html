@@ -10,23 +10,33 @@
 
 <div id="raw-directions" ></div>
 <div id="clean-directions"></div>
-<input id="test" type="text" value="NE,SE,NE,SE"></input>
-<div id="result">no match</div>
+<input id="test-dir" type="text" value="S"></input>
+<input id="test-text" type="text" value="some message"></input>
 <button id="test_start">start test</button>
+<div id="help">
+  <ul>
+    <li>use single uppercase directions: eg: "N" or "NW", etc.</li>
+    <li>hold down alt key when gesturing</li>
+  </ul>
+</div>
+
 <script>
   $(app.init);
   
   var cb = function(){
-    alert('triggered callback...');
+    alert($("#test-text").val());
   }
   // handle start button
   $("#test_start").click(function(){
-    app.addTrigger($("#test").val(), cb);
+    app.addTrigger($("#test-dir").val(), cb);
   });
 </script>
 
 <style>
-
+body{
+  background-color: rgba(229, 228, 228, 0.5);
+}
+#help,
 #clean-directions,
 #raw-directions{
   width: 200px; 
@@ -39,8 +49,11 @@
 #raw-directions{
   color: grey;
 }
-
-#test{
+#help{
+  border: none;
+  width: 400px;
+}
+#test-dir{
   height: 20px;
   width: 200px; 
   display: block;
@@ -48,9 +61,11 @@
   margin: auto;
   text-align: center;
   color: blue;
+  background-color: rgba(229, 228, 228, 0.5);
 }
 
-#result{
+#test-text{
+  background-color: rgba(229, 228, 228, 0.5);
   height: 20px;
   width: 200px; 
   display: block;
@@ -62,6 +77,7 @@
 }
 
 button#test_start{
+  border: none;
   display: block;
   margin: auto;
   text-align: center;

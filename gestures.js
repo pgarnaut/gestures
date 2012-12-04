@@ -1,6 +1,6 @@
 // this is just for testing/dev - will be removed later
 function display(elt, msg){
-    elt.append(msg.clean);
+    elt.append(msg + ' ');
     elt.scrollTop(elt.height());
 }
 
@@ -23,7 +23,7 @@ var app = {
     GSLOG("running");
     //return;
     
-    app.addTrigger("W", function(){alert('triggered');});
+    //app.addTrigger("W", function(){alert('triggered');});
     
     document.onmousemove = app.capture;
     setInterval(app.swallow, 50);
@@ -41,13 +41,8 @@ var app = {
   capture: function(e){
     if(!e.altKey)
       return;
-      
     var evt = e || window.event;
-    var x1 = event.clientX;
-    var y1 = event.clientY;
-    //LOG("buffering: " + x1 + ', ' + y1);
-    //app.buf.push([x1, y1]);
-    app.lastPos = [x1, y1];
+    app.lastPos = [evt.clientX, evt.clientY];
   },
   
   swallow: function(){
@@ -68,15 +63,16 @@ var app = {
       dir = 'S';
       
     if(x1-x0 > pixelBuffering) 
-      dir += 'E';
-    else if(x1-x0 < -1*pixelBuffering)
       dir += 'W';
+    else if(x1-x0 < -1*pixelBuffering)
+      dir += 'E';
       
-    if(dir)
+    if(dir){
       app.dbuf.push(dir);
+      display($("#raw-directions"), dir);
+    }
     
     var dirMag = app.dbuf.toArray(dirBuffering).join('');
-    GSLOG('dir + mag: ' +dirMag);
     
     // the gesture matching ...
     for(var d in app.match){
