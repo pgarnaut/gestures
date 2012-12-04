@@ -65,6 +65,22 @@ var FIFO = function(length){
     size: function(){
       return count;
     },
+    
+    // get array, in order of newest to oldest, up to a max of len elements
+    toArray: function(len){
+      var res = [];
+      for(var i=0; i<len && i<length; i++){
+        res[i] = this.get(i);
+      }
+      return res;
+    },
+    
+    clear: function(){
+      count = 0;
+      front = 0;
+      back = 0;
+      buf = []; // does this allow memory to potentially be free'd up?
+    },
   };
 };
 
@@ -110,6 +126,22 @@ var LIFO = function(length){
     size: function(){
       return count;
     },
+    
+    // get array, in order of newest to oldest, up to a max of len elements
+    toArray: function(len){
+      var res = [];
+      for(var i=0; i<len && i<length; i++){
+        res[i] = this.get(i);
+      }
+      return res;
+    },
+    
+    clear: function(){
+      count = 0;
+      top = 0;
+      buf = []; // does this allow memory to potentially be free'd up?
+    },
+    
   };
 };
 
