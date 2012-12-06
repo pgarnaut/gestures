@@ -318,3 +318,49 @@ var LifoTests = function(){
   console.log("FIFO tests: " + (FifoTests().run()? 'passed' : 'failed'));
   console.log("LIFO tests: " + (LifoTests().run()? 'passed' : 'failed'));
 })();
+
+function addClickScroll (container){
+  var clicked, startPos = [0,0], containerPos = [0,0];
+  
+  container.mousedown(function(e){
+      console.log("mouse down");
+      e.preventDefault();
+      clicked = true;
+      startPos = [e.pageX, e.pageY];
+      containerPos = [$(this).scrollLeft(), $(this).scrollTop()];
+  });
+  
+  container.mousemove(function(e){
+      if(!clicked) { return; }
+      
+      var newPos = [e.pageX, e.pageY];
+      container.scrollTop(containerPos[1] + startPos[1] - newPos[1]);   
+      container.scrollLeft(containerPos[0] + startPos[0] - newPos[0]);    
+  });
+  
+  $('body').mouseup(function(e){
+      clicked = false; 
+  });
+}
+
+function addTouchScroll (container){
+  var startPos = [0,0], containerPos = [0,0];
+  
+  // touch
+  container.bind("touchstart",function(evt){
+    containerPos = [$(this).scrollLeft(), $(this).scrollTop()];
+    startPos = [evt.originalEvent.touches[0].pageX, evt.originalEvent.touches[0].pageY];
+  });
+
+  // drag
+  container.bind("touchmove",function(evt){
+    var currentPos = [evt.originalEvent.touches[0].pageX, evt.originalEvent.touches[0].pageY];
+    $("#attr-window").scrollTop(containerPos[1] + startPos[1]  - currentPos[1]);
+    $("#attr-window").scrollLeft(containerPos[0] + startPos[0]  - currentPos[0]);
+  });
+
+  // release - don't really need to capture this event
+  container.bind("touchend",function(evt){
+    startPos = [0,0];
+  });
+};
