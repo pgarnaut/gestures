@@ -1,3 +1,10 @@
+/*
+  Just messing around with some ideas.
+
+  author: pgarnaut
+  url: https://github.com/pgarnaut/gestures
+*/
+
 // this is just for testing/dev - will be removed later
 function display(elt, msg){
     elt.append(msg + ' ');

@@ -2,6 +2,9 @@
   Javascript Utilities.
   
   Just trying to not rewrite the same rubbish over and over again ...
+
+  author: patrick garnaut
+  url: https://github.com/pgarnaut/gestures
 */
 
 
